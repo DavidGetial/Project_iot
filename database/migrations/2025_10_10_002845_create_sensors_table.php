@@ -6,24 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up()
-    {
-        Schema::create('sensors', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-    }
+{
+    Schema::create('sensors', function (Blueprint $table) {
+        $table->id();
+        $table->string('name');
+        $table->string('code')->unique();
+        $table->string('abbrev')->nullable(); // Agrega esta línea
+        $table->unsignedBigInteger('id_department');
+        $table->boolean('status')->default(true);
+        $table->timestamps();
+        $table->softDeletes();
+        $table->foreign('id_department')->references('id')->on('departments')->onDelete('cascade');
+    });
+}
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
         Schema::dropIfExists('sensors');
