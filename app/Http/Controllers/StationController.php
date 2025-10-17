@@ -15,8 +15,8 @@ class StationController extends Controller
 
     public function create()
     {
-        $cities = \App\Models\City::all();
-        return view('stations.create', compact('cities'));
+        $cities = \App\Models\City::all(); // Obtener todas las ciudades
+    	return view('stations.create', compact('cities'));
     }
 
     public function store(Request $request)

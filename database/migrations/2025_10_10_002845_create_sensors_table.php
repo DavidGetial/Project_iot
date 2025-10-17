@@ -7,22 +7,16 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public function up()
-{
-    Schema::create('sensors', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
-        $table->string('code')->unique();
-        $table->string('abbrev')->nullable(); // Agrega esta línea
-        $table->unsignedBigInteger('id_department');
-        $table->boolean('status')->default(true);
-        $table->timestamps();
-        $table->softDeletes();
-        $table->foreign('id_department')->references('id')->on('departments')->onDelete('cascade');
-    });
-}
+    {
+        Schema::table('sensors', function (Blueprint $table) {
+            $table->string('abbrev', 20)->nullable();
+        });
+    }
 
     public function down()
     {
-        Schema::dropIfExists('sensors');
+        Schema::table('sensors', function (Blueprint $table) {
+            $table->dropColumn('abbrev');
+        });
     }
 };
