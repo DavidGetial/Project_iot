@@ -4,19 +4,23 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class AddCreatedAtToSensorsTable extends Migration
 {
     public function up()
     {
         Schema::table('sensors', function (Blueprint $table) {
-            $table->string('abbrev', 20)->nullable();
+            if (!Schema::hasColumn('sensors', 'created_at')) {
+                $table->timestamp('created_at')->nullable();
+            }
         });
     }
 
     public function down()
     {
         Schema::table('sensors', function (Blueprint $table) {
-            $table->dropColumn('abbrev');
+            if (Schema::hasColumn('sensors', 'created_at')) {
+                $table->dropColumn('created_at');
+            }
         });
     }
-};
+}

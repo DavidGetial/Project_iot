@@ -3,25 +3,50 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sensor;
-use App\Models\Department; // Asegúrate de que el modelo Department exista
+use App\Models\Department;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class SensorController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $sensors = Sensor::with('department')->orderBy('name')->get();
-        return view('sensors.index', compact('sensors'));
+        $query = Sensor::with('department');
+
+        // Obtener todas las estaciones únicas para el filtro
+        $stations = Sensor::select('name')->distinct()->get();
+
+        // Filtros
+        if ($request->has('station') && $request->station != 'Todas las Estaciones') {
+            $query->where('name', 'like', '%' . $request->station . '%');
+        }
+
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $startDate = Carbon::createFromFormat('d/m/Y', $request->start_date)->startOfDay();
+            $endDate = Carbon::createFromFormat('d/m/Y', $request->end_date)->endOfDay();
+            $query->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        if ($request->has('hour_filter') && $request->hour_filter == 'Por Hora') {
+            $query->whereRaw('EXTRACT(HOUR FROM created_at) = ?', [now()->hour]);
+        }
+
+        $sensors = $query->orderBy('name')->get();
+
+        // Estadísticas
+        $onlineSensors = Sensor::where('status', true)->count();
+        $lastSyncValue = Sensor::max('updated_at');
+        $lastSync = $lastSyncValue ? Carbon::parse($lastSyncValue)->diffForHumans() : 'N/A';
+
+        return view('sensors.index', compact('sensors', 'stations', 'onlineSensors', 'lastSync'));
     }
 
     public function create()
     {
-        $departments = Department::all(); // Obtener departamentos para el formulario
+        $departments = Department::all();
         return view('sensors.create', compact('departments'));
     }
 
-    // (Opcional) Método store para guardar
-    /*
     public function store(Request $request)
     {
         $validatedData = $request->validate([
@@ -34,7 +59,6 @@ class SensorController extends Controller
 
         Sensor::create($validatedData);
 
-        return redirect()->route('sensors.index')->with('success', 'Sensor created successfully!');
+        return redirect()->route('sensors.index')->with('success', 'Sensor creado exitosamente!');
     }
-    */
 }
